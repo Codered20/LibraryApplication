@@ -2,5 +2,9 @@
 {
     public class AuthorController
     {
+        public void AddAuthor(String authorName)
+        {
+
+        }
     }
 }

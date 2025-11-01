@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace TestApplication.Models
 {
@@ -10,12 +11,12 @@ namespace TestApplication.Models
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingDefault)]
         public int Id { get; set; }
         [Required]
         [Column("GenreName", TypeName = "varchar(100)")]
-        public string GenreName { get; set; }
+        public required string GenreName { get; set; }
 
-        ICollection<Book> books { get; set; } = new List<Book>();
-
+        protected internal ICollection<Book> Books { get; set; } = new List<Book>();
     }
 }

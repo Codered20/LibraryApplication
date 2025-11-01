@@ -8,6 +8,15 @@ namespace TestApplication.Models
     [Index(nameof(Title))]
     public class Book
     {
+        public Book(string title, DateOnly published, DateOnly entryDate, int authorId, int genreId, int available)
+        {
+            Title = title;
+            Published = published;
+            EntryDate = entryDate;
+            AuthorId = authorId;
+            GenreId = genreId;
+            Available = available;
+        }
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
