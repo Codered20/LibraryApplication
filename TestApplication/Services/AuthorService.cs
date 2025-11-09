@@ -39,7 +39,7 @@ namespace TestApplication.Services
             return null!;
         }
 
-        public async Task<bool> DeleteAuthorByName(string name)
+        public async Task<int> DeleteAuthorByName(string name)
         {
             try
             {
@@ -48,27 +48,28 @@ namespace TestApplication.Services
 
                 var author = await _context.Authors.FirstOrDefaultAsync(a => a.Name == name);
                 if (author == null)
-                    return false;
+                    return -1;
 
                 _context.Authors.Remove(author);
-                await _context.SaveChangesAsync();
+                int deleted = await _context.SaveChangesAsync();
 
                 // Commit the transaction
                 await transaction.CommitAsync();
-                return true;
+                return deleted;
             }
             catch (Exception ex)
             {
                 // Roll back if any exception occurs
                 await _context.Database.RollbackTransactionAsync();
                 Console.WriteLine($"Error deleting author: {ex.Message}");
+                return -1;
             }
-            return false;
+
         }
 
-        public async Task<List<Author>> GetAllAuthors()
+        public async Task<List<Author>> GetAllAuthors(int pageNumber, int pageSize)
         {
-            return await _context.Authors.ToListAsync();
+            return await _context.Authors.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
         public async Task<Author?> GetAuthorByName(string name)

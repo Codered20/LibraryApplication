@@ -18,21 +18,30 @@ namespace TestApplication.Services
             return Task.FromResult(book);
         }
 
-        public Task<bool> DeleteBookByTitle(string title)
+        public async Task<int> DeleteBookByTitle(string title)
         {
-            _context.Books.RemoveRange(_context.Books.Where(b => b.Title == title));
-            _context.SaveChanges();
-            return Task.FromResult(true);
+            try
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                _context.Books.RemoveRange(_context.Books.Where(b => b.Title == title));
+                int deleted = _context.SaveChanges();
+                await transaction.CommitAsync();
+                return deleted;
+            }
+            catch (Exception ex) {
+                Console.WriteLine(ex.ToString());
+                return -1;
+            }
         }
 
-        public Task<List<Book>> GetAllBooksByAuthor(Author author)
+        public Task<List<Book>> GetAllBooksByAuthor(Author author, int pageNumber, int pageSize)
         {
-            return Task.FromResult(_context.Books.Where(b => b.AuthorId == author.Id).ToList());
+            return Task.FromResult(_context.Books.Where(b => b.AuthorId == author.Id).Skip((pageNumber-1)*pageSize).Take(pageSize).ToList());
         }
 
-        public Task<List<Book>> GetAllBooksByGenre(Genre genre)
+        public Task<List<Book>> GetAllBooksByGenre(Genre genre, int pageNumber, int pageSize)
         {
-            return Task.FromResult(_context.Books.Where(b => b.GenreId == genre.Id).ToList());
+            return Task.FromResult(_context.Books.Where(b => b.GenreId == genre.Id).Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList());
         }
 
         public Task<Book> GetBookByTitle(string title)
@@ -40,28 +49,40 @@ namespace TestApplication.Services
             return Task.FromResult(_context.Books.First(b => b.Title == title));
         }
 
-        public Task<Book> IssueBook(String Title)
+        public async Task<Book?> IssueBook(Book book)
         {
-            Book? dbBook = _context.Books.FirstOrDefault(b => b.Title == Title);
-            if (dbBook == null || dbBook.Available <= 0)
+            try
             {
-                throw new InvalidOperationException("Book is not available for issue.");
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                book.Available -= 1;
+                _context.SaveChanges();
+                await transaction.CommitAsync();
+                return book;
             }
-            else
-            {
-                dbBook.Available -= 1;
+            catch (Exception ex) {
+                await _context.Database.RollbackTransactionAsync();
+                Console.WriteLine(ex.ToString());
+                return null;
             }
-            _context.SaveChanges();
-            return Task.FromResult(dbBook);
         }
 
-        public Task<Book> ReturnBook(String title)
+        public async Task<Book?> ReturnBook(Book dbBook)
         {
-            Book? dbBook = _context.Books.FirstOrDefault(b => b.Title == title);
-            dbBook!.Available += 1;
-            _context.SaveChanges();
-            return Task.FromResult(dbBook);
-
+            try
+            {
+                using (var transaction = await _context.Database.BeginTransactionAsync())
+                {
+                    dbBook!.Available += 1;
+                    _context.SaveChanges();
+                    await transaction.CommitAsync();
+                    return dbBook;
+                }
+            }
+            catch (Exception ex) { 
+                Console.WriteLine(ex.ToString());
+                return null;
+            }
+            
         }
 
         public async Task<Book?> UpdateBook(Book oldBook, Book newBook)

@@ -8,6 +8,6 @@ namespace TestApplication.Interfaces
         Task<Genre?> CreateGenre(string name);
         Task<Genre?> UpdateGenreName(string oldName, string newName);
         Task<bool> DeleteGenreByName(string name);
-        Task<List<Genre>> GetAllGenres();
+        Task<List<Genre>> GetAllGenres(int pageNumber, int pageSize);
     }
 }

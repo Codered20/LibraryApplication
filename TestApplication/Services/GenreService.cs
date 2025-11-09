@@ -68,9 +68,9 @@ namespace TestApplication.Services
             }
         }
 
-        public Task<List<Genre>> GetAllGenres()
+        public Task<List<Genre>> GetAllGenres(int pageNumber, int pageSize)
         {
-            return _context.Genres.ToListAsync();
+            return _context.Genres.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync();
         }
 
         public Task<Genre?> GetGenreByName(string name)
