@@ -47,7 +47,20 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AgeRestriction", policy =>
+    policy.RequireAssertion(context =>
+    {
+    var ageClaim = context.User.FindFirst(c => c.Type == "Age");
+    if (ageClaim == null) return false;
+
+    if (int.TryParse(ageClaim.Value, out var age)){
+            return age > 18;
+    }
+        return false;
+    }));
+});
 
 var app = builder.Build();
 

@@ -19,6 +19,7 @@ namespace TestApplication.Controllers
         }
 
         [HttpGet("all")]
+        [Authorize(Policy = "AgeRestriction")]
         public async Task<ActionResult<List<Genre>>> GetAllGenres([FromQuery] int pageNumber = 1, int pageSize = 10)
         {
             if (pageNumber < 1 || pageSize < 1)
